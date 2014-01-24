@@ -196,7 +196,7 @@ func (c Case) runTest(i int, t *testing.T) {
 			colorf(red, black, "have %#+v", out),
 		)
 	} else if !c.out.Equal(out) {
-		t.Errorf("\b \b \b case #%d %s - %s%v\n%s\n%s\ndiff %s",
+		t.Errorf("case #%d %s - %s%v\n%s\n%s\ndiff %s",
 			i,
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 			n,
