@@ -17,7 +17,7 @@ The purpose of this library is to facilitate the testing and benchmarking of Go 
  - Providing a series of useful, contextual information automatically.
  - Focusing on what is being tested rather than how it is done.
 
-...while remaining compatible with the standard `testing` package (and `go test` command) as well as preserving its lightweight approach.
+...while remaining compatible with the standard `testing` package (used by the `go test` tool) as well as preserving its lightweight approach.
 
 Status
 ------
