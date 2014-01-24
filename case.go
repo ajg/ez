@@ -16,17 +16,24 @@ import (
 	"testing"
 )
 
+// A Case represents a function and its required input and output values.
 type Case struct {
 	fn  interface{}
 	in  in
 	out out
 }
 
+// A CaseMap is a mapping from inputs to outputs.
 type CaseMap map[*in]out
 
+// A Step holds arbitrary code to execute during a specific part of a test.
 type Step struct {
 	fn func()
 }
+
+// Diff is a function that should produce a representation of the difference between a and b.
+// By default it attempts to use the git command to produce an inline diff, which can be colorized.
+var Diff func(a, b string) string = gitDiff
 
 func newCase(fn interface{}, in in, out out) Case {
 	if fn == nil {
@@ -148,10 +155,6 @@ func colorf(fg, bg uint16, format string, xs ...interface{}) string {
 	code := func(a, b, c uint16) string { return fmt.Sprintf("%d;%d;%d", a, b, c) }
 	return fmt.Sprintf("\033[%s;%sm%s\033[0m", code(38, 5, fg), code(48, 5, bg), s)
 }
-
-// Diff is a function that should produce a representation of the difference between a and b.
-// By default it attempts to use the git command to produce an inline diff, which can be colorized.
-var Diff func(a, b string) string = gitDiff
 
 func gitDiff(a, b string) (s string) {
 	defer func() {
