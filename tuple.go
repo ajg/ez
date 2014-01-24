@@ -61,7 +61,18 @@ func newPanic(e interface{}) out {
 }
 
 func (t tuple) Equal(u tuple) bool {
-	return reflect.DeepEqual(t.xs, u.xs)
+	switch {
+	case t.xs == nil && u.xs != nil ||
+		t.xs != nil && u.xs == nil ||
+		len(t.xs) != len(u.xs):
+		return false
+	}
+	for i, x := range t.xs {
+		if y := u.xs[i]; x != Any && y != Any && !reflect.DeepEqual(x, y) {
+			return false
+		}
+	}
+	return true
 }
 
 func (t tuple) values(f reflect.Value) (vs []reflect.Value) {
