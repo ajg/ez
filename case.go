@@ -31,9 +31,9 @@ type Step struct {
 	fn func()
 }
 
-// Diff is a function that should produce a representation of the difference between a and b.
+// Diff is a function that should produce a string representing the difference between two strings.
 // By default it attempts to use the git command to produce an inline diff, which can be colorized.
-var Diff func(a, b string) string = gitDiff
+var Diff = gitDiff
 
 func newCase(fn interface{}, in in, out out) Case {
 	if fn == nil {
