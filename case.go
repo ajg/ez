@@ -72,7 +72,7 @@ func (c Case) runTest(i int, t *testing.T) {
 				i,
 				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 				n,
-				c.in.tuple,
+				c.in.t,
 				colorf(green, black, "want panic (%#+v)", c.out.e),
 				colorf(red, black, "have panic (%#+v)\n%s", e, string(debug.Stack())),
 				Diff(fmt.Sprintf("%#+v", e),
@@ -83,8 +83,8 @@ func (c Case) runTest(i int, t *testing.T) {
 				i,
 				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 				n,
-				c.in.tuple,
-				colorf(green, black, "want %#+v", c.out.tuple),
+				c.in.t,
+				colorf(green, black, "want %#+v", c.out.t),
 				colorf(red, black, "have panic [%s]\n%s", e, string(debug.Stack())),
 			)
 		}
@@ -94,20 +94,20 @@ func (c Case) runTest(i int, t *testing.T) {
 			i,
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 			n,
-			c.in.tuple,
+			c.in.t,
 			colorf(green, black, "want panic [%s]", c.out.e),
 			colorf(red, black, "have %#+v", out),
 		)
-	} else if !c.out.equal(out) {
+	} else if !c.out.t.equal(out) {
 		t.Errorf("case #%d %s - %s%v\n%s\n%s\ndiff %s",
 			i,
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 			n,
-			c.in.tuple,
-			colorf(green, black, "want %#+v", c.out.tuple),
+			c.in.t,
+			colorf(green, black, "want %#+v", c.out.t),
 			colorf(red, black, "have %#+v", out),
 			Diff(fmt.Sprintf("%#+v", out),
-				fmt.Sprintf("%#+v", c.out.tuple)),
+				fmt.Sprintf("%#+v", c.out.t)),
 		)
 	}
 }

@@ -16,13 +16,13 @@ type tuple struct {
 }
 
 type in struct {
-	tuple
+	t tuple
 	f string
 	l int
 }
 
 type out struct {
-	tuple
+	t tuple
 	f string
 	l int
 	e interface{}
@@ -76,10 +76,10 @@ func (t tuple) equal(u tuple) bool {
 	return true
 }
 
-func (t tuple) values(f reflect.Value) (vs []reflect.Value) {
+func (in in) values(f reflect.Value) (vs []reflect.Value) {
 	ft := f.Type()
 
-	for i, x := range t.xs {
+	for i, x := range in.t.xs {
 		var t reflect.Type
 		if n := ft.NumIn(); i < n {
 			t = ft.In(i)
