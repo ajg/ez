@@ -91,7 +91,7 @@ func (c Case) runTest(i int, t *testing.T) {
 			colorf(green, black, "want panic [%s]", c.out.e),
 			colorf(red, black, "have %#+v", out),
 		)
-	} else if !c.out.Equal(out) {
+	} else if !c.out.equal(out) {
 		t.Errorf("case #%d %s - %s%v\n%s\n%s\ndiff %s",
 			i,
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),

@@ -61,7 +61,7 @@ func newPanic(e interface{}) out {
 	return out{tuple{}, f, l, e}
 }
 
-func (t tuple) Equal(u tuple) bool {
+func (t tuple) equal(u tuple) bool {
 	switch {
 	case t.xs == nil && u.xs != nil ||
 		t.xs != nil && u.xs == nil ||
