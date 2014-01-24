@@ -11,6 +11,25 @@ import (
 	"strings"
 )
 
+type tuple struct {
+	xs []interface{}
+}
+
+type in struct {
+	tuple
+	f string
+	l int
+}
+
+type out struct {
+	tuple
+	f string
+	l int
+	e interface{}
+}
+
+var Any struct{}
+
 func (t tuple) String() string {
 	s := "("
 	for i, x := range t.xs {
@@ -26,27 +45,19 @@ func (t tuple) GoString() string {
 	return t.String()
 }
 
-type tuple struct {
-	xs []interface{}
-	f  string
-	l  int
-	// TODO: p interface{} for panics
+func newIn(xs []interface{}) in {
+	f, l := source()
+	return in{tuple{xs}, f, l}
 }
 
-func newTuple(xs []interface{}) *tuple {
-	_, f, l, ok := runtime.Caller(2) // newTuple + In/Out/Panic
-	if ok {
-		// Truncate file name at last file name separator.
-		if i := strings.LastIndex(f, "/"); i >= 0 {
-			f = f[i+1:]
-		} else if i = strings.LastIndex(f, "\\"); i >= 0 {
-			f = f[i+1:]
-		}
-	} else {
-		f = "???"
-		l = 1
-	}
-	return &tuple{xs, f, l}
+func newOut(xs []interface{}) out {
+	f, l := source()
+	return out{tuple{xs}, f, l, nil}
+}
+
+func newPanic(e interface{}) out {
+	f, l := source()
+	return out{tuple{}, f, l, e}
 }
 
 func (t tuple) Equal(u tuple) bool {
@@ -90,4 +101,20 @@ func validValueOrZero(v reflect.Value, t reflect.Type) (reflect.Value, bool) {
 		return reflect.Zero(t), true
 	}
 	return reflect.Value{}, false
+}
+
+func source() (string, int) {
+	_, f, l, ok := runtime.Caller(3) // source + newIn/newOut/newPanic + In/Out/Panic
+	if ok {
+		// Truncate file name at last file name separator.
+		if i := strings.LastIndex(f, "/"); i >= 0 {
+			f = f[i+1:]
+		} else if i = strings.LastIndex(f, "\\"); i >= 0 {
+			f = f[i+1:]
+		}
+	} else {
+		f = "???"
+		l = 1
+	}
+	return f, l
 }

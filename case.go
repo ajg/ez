@@ -18,11 +18,11 @@ import (
 
 type Case struct {
 	f   reflect.Value
-	in  tuple
-	out *tuple // nil means panic
+	in  in
+	out out
 }
 
-type CaseMap map[*tuple]*tuple
+type CaseMap map[*in]out
 
 type Step struct {
 	fn func()
@@ -44,25 +44,41 @@ func (c Case) runTest(i int, t *testing.T) {
 	n := runtime.FuncForPC(f.Pointer()).Name()
 	defer func() {
 		e := recover()
-		if c.out == nil || e == nil {
+		switch {
+		case e == nil || Any == c.out.e:
 			return
+		case c.out.e != nil:
+			if reflect.DeepEqual(c.out.e, e) {
+				return
+			}
+			t.Errorf("case #%d %s - %s%v\n%s\n%s\ndiff %s",
+				i,
+				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
+				n,
+				c.in.tuple,
+				colorf(green, black, "want panic (%#+v)", c.out.e),
+				colorf(red, black, "have panic (%#+v)\n%s", e, string(debug.Stack())),
+				Diff(fmt.Sprintf("%#+v", e),
+					fmt.Sprintf("%#+v", c.out.e)),
+			)
+		default:
+			t.Errorf("case #%d %s - %s%v\n%s\n%s",
+				i,
+				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
+				n,
+				c.in.tuple,
+				colorf(green, black, "want %#+v", c.out.tuple),
+				colorf(red, black, "have panic [%s]\n%s", e, string(debug.Stack())),
+			)
 		}
-		t.Errorf("case #%d %s - %s%v\n%s\n%s",
-			i,
-			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
-			n,
-			c.in,
-			colorf(green, black, "want %#+v", *c.out),
-			colorf(red, black, "have panic [%s]\n%s", e, string(debug.Stack())),
-		)
 	}()
-	if out := apply(f, c.in.values(f)); c.out == nil {
+	if out := apply(f, c.in.values(f)); c.out.e != nil {
 		t.Errorf("case #%d %s - %s%v\n%s\n%s",
 			i,
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 			n,
-			c.in,
-			colorf(green, black, "want panic"), // TODO: Allow specifying the panic value or at least string.
+			c.in.tuple,
+			colorf(green, black, "want panic [%s]", c.out.e),
 			colorf(red, black, "have %#+v", out),
 		)
 	} else if !c.out.Equal(out) {
@@ -70,10 +86,11 @@ func (c Case) runTest(i int, t *testing.T) {
 			i,
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 			n,
-			c.in,
-			colorf(green, black, "want %#+v", *c.out),
+			c.in.tuple,
+			colorf(green, black, "want %#+v", c.out.tuple),
 			colorf(red, black, "have %#+v", out),
-			Diff(fmt.Sprintf("%#+v", out), fmt.Sprintf("%#+v", *c.out)),
+			Diff(fmt.Sprintf("%#+v", out),
+				fmt.Sprintf("%#+v", c.out.tuple)),
 		)
 	}
 }
@@ -90,7 +107,7 @@ func apply(f reflect.Value, args []reflect.Value) tuple {
 	for _, v := range f.Call(args) {
 		ys = append(ys, v.Interface())
 	}
-	return tuple{ys, "", 0}
+	return tuple{ys}
 }
 
 var Colorize = true

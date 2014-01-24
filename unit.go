@@ -20,7 +20,7 @@ type Unit struct {
 }
 
 type half struct {
-	in tuple
+	in in
 	u  *Unit
 }
 
@@ -41,11 +41,11 @@ func New() *Unit {
 }
 
 func Test(fn interface{}, t *testing.T) *Unit {
-	return NewUnit().setT(t).Of(fn)
+	return New().setT(t).Func(fn)
 }
 
 func Benchmark(fn interface{}, b *testing.B) *Unit {
-	return NewUnit().setB(b).Of(fn)
+	return New().setB(b).Func(fn)
 }
 
 func (u *Unit) setT(t *testing.T) *Unit {
@@ -77,8 +77,8 @@ func (u *Unit) Step(fn func()) *Unit {
 	return u
 }
 
-func (u *Unit) Case(in, out *tuple) *Unit {
-	return u.addCase(*in, out)
+func (u *Unit) Case(in in, out out) *Unit {
+	return u.addCase(in, out)
 }
 
 func (u *Unit) Cases(cs CaseMap) *Unit {
@@ -88,20 +88,20 @@ func (u *Unit) Cases(cs CaseMap) *Unit {
 	return u
 }
 
-func In(xs ...interface{}) *tuple  { return newTuple(xs) }
-func Out(xs ...interface{}) *tuple { return newTuple(xs) }
-func Panic() *tuple                { return nil }
+func In(xs ...interface{}) in   { return newIn(xs) }
+func Out(xs ...interface{}) out { return newOut(xs) }
+func Panic(x interface{}) out   { return newPanic(x) }
 
-func (u *Unit) In(xs ...interface{}) *half  { return &half{*newTuple(xs), u} }
-func (h *half) Out(xs ...interface{}) *Unit { return h.u.addCase(h.in, newTuple(xs)) }
-func (h *half) Panic() *Unit                { return h.u.addCase(h.in, nil) }
+func (u *Unit) In(xs ...interface{}) *half  { return &half{newIn(xs), u} }
+func (h *half) Out(xs ...interface{}) *Unit { return h.u.addCase(h.in, newOut(xs)) }
+func (h *half) Panic(x interface{}) *Unit   { return h.u.addCase(h.in, newPanic(x)) }
 
-func (u *Unit) addCase(in tuple, out *tuple) *Unit {
+func (u *Unit) addCase(in in, out out) *Unit {
 	u.rs = append(u.rs, u.newCase(in, out))
 	return u
 }
 
-func (u *Unit) newCase(in tuple, out *tuple) Case {
+func (u *Unit) newCase(in in, out out) Case {
 	if u.f == nil {
 		panic("test has no function")
 	}
