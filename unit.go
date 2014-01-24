@@ -94,9 +94,14 @@ func (u *Unit) Cases(cs CaseMap) *Unit {
 	return u
 }
 
-func In(xs ...interface{}) in   { return newIn(xs) }
+// In returns xs as inputs that can be used in a Case or CaseMap.
+func In(xs ...interface{}) in { return newIn(xs) }
+
+// Out returns xs as outputs that can be used in a Case or CaseMap.
 func Out(xs ...interface{}) out { return newOut(xs) }
-func Panic(x interface{}) out   { return newPanic(x) }
+
+// Panic returns requirement to panic with x that can be used in a Case or CaseMap.
+func Panic(x interface{}) out { return newPanic(x) }
 
 // In begins a Case with xs as inputs.
 func (u *Unit) In(xs ...interface{}) *half { return &half{newIn(xs), u} }
