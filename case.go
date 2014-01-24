@@ -17,7 +17,7 @@ import (
 )
 
 type Case struct {
-	f   reflect.Value
+	fn  interface{}
 	in  in
 	out out
 }
@@ -26,6 +26,13 @@ type CaseMap map[*in]out
 
 type Step struct {
 	fn func()
+}
+
+func newCase(fn interface{}, in in, out out) Case {
+	if fn == nil {
+		panic("function is nil")
+	}
+	return Case{fn, in, out}
 }
 
 func (s Step) runTest(int, *testing.T) {
@@ -40,7 +47,10 @@ func (s Step) runBenchmark(_ int, b *testing.B) {
 
 func (c Case) runTest(i int, t *testing.T) {
 	// TODO: Color i, n & c.in with default colors, so they can eventually be customized too.
-	f := c.f
+	f := reflect.ValueOf(c.fn)
+	if !f.IsValid() || f.Kind() != reflect.Func {
+		panic("invalid function")
+	}
 	n := runtime.FuncForPC(f.Pointer()).Name()
 	defer func() {
 		e := recover()
@@ -97,9 +107,14 @@ func (c Case) runTest(i int, t *testing.T) {
 
 func (c Case) runBenchmark(i int, b *testing.B) {
 	b.StopTimer()
-	args := c.in.values(c.f)
+	f := reflect.ValueOf(c.fn)
+	if !f.IsValid() || f.Kind() != reflect.Func {
+		panic("invalid function")
+	}
+	args := c.in.values(f)
+
 	b.StartTimer()
-	c.f.Call(args)
+	f.Call(args)
 }
 
 func apply(f reflect.Value, args []reflect.Value) tuple {

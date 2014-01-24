@@ -5,13 +5,12 @@
 package ez
 
 import (
-	"reflect"
 	"runtime"
 	"testing"
 )
 
 type Unit struct {
-	f  *reflect.Value
+	fn interface{}
 	rs []runner
 	T  *testing.T
 	B  *testing.B
@@ -59,11 +58,7 @@ func (u *Unit) setB(b *testing.B) *Unit {
 }
 
 func (u *Unit) Func(fn interface{}) *Unit {
-	f := reflect.ValueOf(fn)
-	if !f.IsValid() || f.Kind() != reflect.Func {
-		panic("not a valid function")
-	}
-	u.f = &f
+	u.fn = fn
 	return u
 }
 
@@ -97,15 +92,8 @@ func (h *half) Out(xs ...interface{}) *Unit { return h.u.addCase(h.in, newOut(xs
 func (h *half) Panic(x interface{}) *Unit   { return h.u.addCase(h.in, newPanic(x)) }
 
 func (u *Unit) addCase(in in, out out) *Unit {
-	u.rs = append(u.rs, u.newCase(in, out))
+	u.rs = append(u.rs, newCase(u.fn, in, out))
 	return u
-}
-
-func (u *Unit) newCase(in in, out out) Case {
-	if u.f == nil {
-		panic("test has no function")
-	}
-	return Case{*u.f, in, out}
 }
 
 func (u *Unit) Run() {
