@@ -134,7 +134,9 @@ func colorf(fg, bg uint16, format string, xs ...interface{}) string {
 	return fmt.Sprintf("\033[%s;%sm%s\033[0m", code(38, 5, fg), code(48, 5, bg), s)
 }
 
-var Diff = gitDiff
+// Diff is a function that should produce a representation of the difference between a and b.
+// By default it attempts to use the git command to produce an inline diff, which can be colorized.
+var Diff func(a, b string) string = gitDiff
 
 func gitDiff(a, b string) (s string) {
 	defer func() {
@@ -160,7 +162,16 @@ func gitDiff(a, b string) (s string) {
 	if _, err = bf.WriteString(b); err != nil {
 		panic(err)
 	}
-	bs, err := exec.Command("git", "diff", "--color-words", "--no-index", af.Name(), bf.Name()).Output()
+
+	args := []string{"diff"}
+	if Colorize {
+		args = append(args, "--color-words")
+	} else {
+		args = append(args, "--word-diff", "--no-color")
+	}
+	args = append(args, "--no-index", af.Name(), bf.Name())
+
+	bs, err := exec.Command("git", args...).Output()
 	s = string(bs)
 	if err != nil {
 		// FIXME: Figure out how to make diff exit with 0 so that err is nil on
