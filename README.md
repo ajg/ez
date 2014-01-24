@@ -6,6 +6,19 @@ A Go Package for Easy, Powerful Tests and Benchmarks, written by [Alvaro J. Geni
 [![Build Status](https://travis-ci.org/ajg/ez.png?branch=master)](https://travis-ci.org/ajg/ez)
 [![GoDoc](https://godoc.org/github.com/ajg/ez?status.png)](https://godoc.org/github.com/ajg/ez)
 
+Synopsis
+--------
+
+The purpose of this library is to facilitate the testing and benchmarking of Go code. It accomplishes this goal by...
+
+ - Reducing the amount of boilerplate needed to a mininum.
+ - Eliminating most of the manual, error-prone parts of testing.
+ - Allowing testing code to be automatically reused for benchmarking.
+ - Providing a series of useful, contextual information automatically.
+ - Focusing on what is being tested rather than how it is done.
+
+...while remaining compatible with the standard `testing` package (and `go test` command) as well as preserving its lightweight approach.
+
 Status
 ------
 
