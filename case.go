@@ -132,6 +132,7 @@ func apply(f reflect.Value, args []reflect.Value) tuple {
 	return tuple{ys}
 }
 
+// Colorize determines whether to attempt to use terminal colors.
 var Colorize = true
 
 const (
