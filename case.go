@@ -134,7 +134,9 @@ func colorf(fg, bg uint16, format string, xs ...interface{}) string {
 	return fmt.Sprintf("\033[%s;%sm%s\033[0m", code(38, 5, fg), code(48, 5, bg), s)
 }
 
-var Diff = func(a, b string) (s string) {
+var Diff = gitDiff
+
+func gitDiff(a, b string) (s string) {
 	defer func() {
 		if e := recover(); e != nil {
 			s = "<unavailable: please install git>" + "\n" + fmt.Sprint(e) + "\n" + string(debug.Stack())
