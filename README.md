@@ -15,3 +15,8 @@ Dependencies
 ------------
 
 The only requirement is [Go 1.0](http://golang.org/doc/go1) or later.
+
+License
+-------
+
+This library is distributed under a BSD-style [LICENSE](./LICENSE).
