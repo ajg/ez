@@ -37,7 +37,7 @@ type runner interface {
 	runBenchmark(int, *testing.B)
 }
 
-func NewUnit() *Unit {
+func New() *Unit {
 	u := &Unit{}
 	// FIXME: Sadly, finalizers are not guaranteed to run, so they're of little comfort.
 	runtime.SetFinalizer(u, func(u *Unit) {
@@ -66,7 +66,7 @@ func (u *Unit) setB(b *testing.B) *Unit {
 	return u
 }
 
-func (u *Unit) Of(fn interface{}) *Unit {
+func (u *Unit) Func(fn interface{}) *Unit {
 	f := reflect.ValueOf(fn)
 	if !f.IsValid() || f.Kind() != reflect.Func {
 		panic("not a valid function")
@@ -75,21 +75,25 @@ func (u *Unit) Of(fn interface{}) *Unit {
 	return u
 }
 
-func (u *Unit) Do(fn func(*Unit)) *Unit {
+func (u *Unit) Thru(fn func(*Unit)) *Unit {
 	fn(u)
 	return u
 }
 
-func (u *Unit) Then(fn func()) *Unit { // TODO: Rename Step.
+func (u *Unit) Step(fn func()) *Unit {
 	u.rs = append(u.rs, Step{fn})
 	return u
 }
 
 type CaseMap map[*tuple]*tuple
 
+func (u *Unit) Case(in, out *tuple) *Unit {
+	return u.addCase(*in, out)
+}
+
 func (u *Unit) Cases(cs CaseMap) *Unit {
-	for i, o := range cs {
-		u = u.addCase(*i, o)
+	for in, out := range cs {
+		u = u.addCase(*in, out)
 	}
 	return u
 }
