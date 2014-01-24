@@ -28,6 +28,7 @@ type out struct {
 	e interface{}
 }
 
+// Any is a placeholder that can be used with Out and Panic, and it means any value is acceptable.
 var Any struct{}
 
 func (t tuple) String() string {
