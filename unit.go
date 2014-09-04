@@ -95,7 +95,7 @@ func (u *Unit) Cases(cs CaseMap) *Unit {
 }
 
 // In returns xs as inputs that can be used in a Case or CaseMap.
-func In(xs ...interface{}) in { return newIn(xs) }
+func In(xs ...interface{}) *in { in := newIn(xs); return &in }
 
 // Out returns xs as outputs that can be used in a Case or CaseMap.
 func Out(xs ...interface{}) out { return newOut(xs) }
