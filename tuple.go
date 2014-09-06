@@ -25,7 +25,7 @@ type out struct {
 	t tuple
 	f string
 	l int
-	e interface{}
+	p interface{}
 }
 
 // Any is a placeholder that can be used with Out and Panic, and it means any value is acceptable.
@@ -56,9 +56,9 @@ func newOut(xs []interface{}) out {
 	return out{tuple{xs}, f, l, nil}
 }
 
-func newPanic(e interface{}) out {
+func newPanic(x interface{}) out {
 	f, l := source()
-	return out{tuple{}, f, l, e}
+	return out{tuple{}, f, l, x}
 }
 
 func (t tuple) equal(u tuple) bool {

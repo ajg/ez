@@ -60,12 +60,12 @@ func (c Case) runTest(i int, t *testing.T) {
 	}
 	n := runtime.FuncForPC(f.Pointer()).Name()
 	defer func() {
-		e := recover()
+		p := recover()
 		switch {
-		case e == nil || Any == c.out.e:
+		case p == nil || Any == c.out.p:
 			return
-		case c.out.e != nil:
-			if reflect.DeepEqual(c.out.e, e) {
+		case c.out.p != nil:
+			if reflect.DeepEqual(c.out.p, p) {
 				return
 			}
 			t.Errorf("case #%d %s - %s%v\n%s\n%s\ndiff %s",
@@ -73,10 +73,10 @@ func (c Case) runTest(i int, t *testing.T) {
 				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 				n,
 				c.in.t,
-				colorf(green, black, "want panic (%#+v)", c.out.e),
-				colorf(red, black, "have panic (%#+v)\n%s", e, string(debug.Stack())),
-				Diff(fmt.Sprintf("%#+v", e),
-					fmt.Sprintf("%#+v", c.out.e)),
+				colorf(green, black, "want panic (%#+v)", c.out.p),
+				colorf(red, black, "have panic (%#+v)\n%s", p, string(debug.Stack())),
+				Diff(fmt.Sprintf("%#+v", p),
+					fmt.Sprintf("%#+v", c.out.p)),
 			)
 		default:
 			t.Errorf("case #%d %s - %s%v\n%s\n%s",
@@ -85,17 +85,17 @@ func (c Case) runTest(i int, t *testing.T) {
 				n,
 				c.in.t,
 				colorf(green, black, "want %#+v", c.out.t),
-				colorf(red, black, "have panic [%s]\n%s", e, string(debug.Stack())),
+				colorf(red, black, "have panic [%s]\n%s", p, string(debug.Stack())),
 			)
 		}
 	}()
-	if out := apply(f, c.in.values(f)); c.out.e != nil {
+	if out := apply(f, c.in.values(f)); c.out.p != nil {
 		t.Errorf("case #%d %s - %s%v\n%s\n%s",
 			i,
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 			n,
 			c.in.t,
-			colorf(green, black, "want panic [%s]", c.out.e),
+			colorf(green, black, "want panic [%s]", c.out.p),
 			colorf(red, black, "have %#+v", out),
 		)
 	} else if !c.out.t.equal(out) {

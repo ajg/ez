@@ -100,17 +100,23 @@ func In(xs ...interface{}) *in { in := newIn(xs); return &in }
 // Out returns xs as outputs that can be used in a Case or CaseMap.
 func Out(xs ...interface{}) out { return newOut(xs) }
 
-// Panic returns requirement to panic with x that can be used in a Case or CaseMap.
-func Panic(x interface{}) out { return newPanic(x) }
+// PanicWith returns a requirement to panic with x, and can be used in a Case or CaseMap.
+func PanicWith(x interface{}) out { return newPanic(x) }
+
+// Panic returns a requirement to panic with any value, and can be used in a Case or CaseMap; it is equivalent to PanicWith(Any).
+func Panic() out { return newPanic(Any) }
 
 // In begins a Case with xs as inputs.
 func (u *Unit) In(xs ...interface{}) *half { return &half{newIn(xs), u} }
 
-// Out completes a Case with xs as outputs and adds it to the Unit.
+// Out completes a Case with xs as outputs, and adds it to the Unit.
 func (h *half) Out(xs ...interface{}) *Unit { return h.u.addCase(h.in, newOut(xs)) }
 
-// Panic completes a Case that must panic with x and adds it to the Unit.
-func (h *half) Panic(x interface{}) *Unit { return h.u.addCase(h.in, newPanic(x)) }
+// PanicWith completes a Case that must panic with x, and adds it to the Unit.
+func (h *half) PanicWith(x interface{}) *Unit { return h.u.addCase(h.in, newPanic(x)) }
+
+// Panic completes a Case that must panic with any value, and adds it to the Unit; it is equivalent to PanicWith(Any).
+func (h *half) Panic() *Unit { return h.u.addCase(h.in, newPanic(Any)) }
 
 func (u *Unit) addCase(in in, out out) *Unit {
 	u.rs = append(u.rs, newCase(u.fn, in, out))
