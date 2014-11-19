@@ -120,11 +120,11 @@ func In(xs ...interface{}) *in { in := newIn(xs); return &in }
 // Out returns xs as outputs that can be used in a Case or CaseMap.
 func Out(xs ...interface{}) out { return newOut(xs) }
 
-// PanicWith returns a requirement to panic with x, and can be used in a Case or CaseMap.
-func PanicWith(x interface{}) out { return newPanic(x) }
-
 // Panic returns a requirement to panic with any value, and can be used in a Case or CaseMap; it is equivalent to PanicWith(Any).
 func Panic() out { return newPanic(Any) }
+
+// PanicWith returns a requirement to panic with x, and can be used in a Case or CaseMap.
+func PanicWith(x interface{}) out { return newPanic(x) }
 
 // In begins a Case with xs as inputs.
 func (u *Unit) In(xs ...interface{}) *half { return &half{newIn(xs), u} }

@@ -26,17 +26,17 @@ func TestOut(t *testing.T) {
 	}
 }
 
-func TestPanicWith(t *testing.T) {
-	p := errors.New("bar")
-	cout := out{tuple{}, "unit_test.go", 32, p}
-	if out := PanicWith(p); !reflect.DeepEqual(cout, out) {
-		t.Errorf("PanicWith(%v)\nwant (%v)\nhave (%v)", p, cout, out)
+func TestPanic(t *testing.T) {
+	cout := out{tuple{}, "unit_test.go", 31, Any}
+	if out := Panic(); !reflect.DeepEqual(cout, out) {
+		t.Errorf("Panic()\nwant (%v)\nhave (%v)", cout, out)
 	}
 }
 
-func TestPanic(t *testing.T) {
-	cout := out{tuple{}, "unit_test.go", 39, Any}
-	if out := Panic(); !reflect.DeepEqual(cout, out) {
-		t.Errorf("Panic()\nwant (%v)\nhave (%v)", cout, out)
+func TestPanicWith(t *testing.T) {
+	p := errors.New("bar")
+	cout := out{tuple{}, "unit_test.go", 39, p}
+	if out := PanicWith(p); !reflect.DeepEqual(cout, out) {
+		t.Errorf("PanicWith(%v)\nwant (%v)\nhave (%v)", p, cout, out)
 	}
 }
