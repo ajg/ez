@@ -5,18 +5,19 @@
 package ez
 
 import (
+	"reflect"
 	"runtime"
 	"testing"
 )
 
 // A Unit is a specification that can be used for testing and/or benchmarking.
 type Unit struct {
-	fn interface{}
-	rs []runner
-	T  *testing.T
-	B  *testing.B
-	tr bool
-	br bool
+	gfn interface{}
+	rs  []runner
+	T   *testing.T
+	B   *testing.B
+	tr  bool
+	br  bool
 }
 
 // A half is an incomplete case.
@@ -30,6 +31,15 @@ type runner interface {
 	runTest(int, *testing.T)
 	runBenchmark(int, *testing.B)
 }
+
+// Seq is a synonym for New until Sequential is split out from Parallel test types.
+func Seq() *Unit { return New() }
+
+// Call is a synonym for Func until Sequential is split out from Parallel test types.
+func (u *Unit) Call(fn interface{}) *Unit { return u.Func(fn) }
+
+// Do is a synonym for Step until Sequential is split out from Parallel test types.
+func (u *Unit) Do(fn func()) *Unit { return u.Step(fn) }
 
 // New returns a blank Unit.
 func New() *Unit {
@@ -65,7 +75,7 @@ func (u *Unit) setB(b *testing.B) *Unit {
 
 // Func sets fn as the Unit's current function; it can be called more than once.
 func (u *Unit) Func(fn interface{}) *Unit {
-	u.fn = fn
+	u.gfn = fn
 	return u
 }
 
@@ -81,15 +91,25 @@ func (u *Unit) Step(fn func()) *Unit {
 	return u
 }
 
+func unwrapPointer(x interface{}) interface{} { return reflect.ValueOf(x).Elem().Interface() }
+
+// TODO: Split into Is(xs ...interface{}) + EqualTo(xs ...interface{})
+func (u *Unit) Equal(x interface{}, y interface{}) *Unit {
+	if reflect.ValueOf(x).Kind() != reflect.Ptr {
+		panic("source must be a pointer to allow mutation post-definition")
+	}
+	return u.addCase(unwrapPointer, newIn([]interface{}{x}), newOut([]interface{}{y}))
+}
+
 // Case adds in & out (plus the current function) as a Case to the Unit.
 func (u *Unit) Case(in in, out out) *Unit {
-	return u.addCase(in, out)
+	return u.addCase(u.gfn, in, out)
 }
 
 // Cases adds every in/out pair in the CaseMap (plus the current function) as a Case to the Unit.
 func (u *Unit) Cases(cs CaseMap) *Unit {
 	for in, out := range cs {
-		u = u.addCase(*in, out)
+		u = u.addCase(u.gfn, *in, out)
 	}
 	return u
 }
@@ -110,16 +130,16 @@ func Panic() out { return newPanic(Any) }
 func (u *Unit) In(xs ...interface{}) *half { return &half{newIn(xs), u} }
 
 // Out completes a Case with xs as outputs, and adds it to the Unit.
-func (h *half) Out(xs ...interface{}) *Unit { return h.u.addCase(h.in, newOut(xs)) }
+func (h *half) Out(xs ...interface{}) *Unit { return h.u.addCase(h.u.gfn, h.in, newOut(xs)) }
 
 // PanicWith completes a Case that must panic with x, and adds it to the Unit.
-func (h *half) PanicWith(x interface{}) *Unit { return h.u.addCase(h.in, newPanic(x)) }
+func (h *half) PanicWith(x interface{}) *Unit { return h.u.addCase(h.u.gfn, h.in, newPanic(x)) }
 
 // Panic completes a Case that must panic with any value, and adds it to the Unit; it is equivalent to PanicWith(Any).
-func (h *half) Panic() *Unit { return h.u.addCase(h.in, newPanic(Any)) }
+func (h *half) Panic() *Unit { return h.u.addCase(h.u.gfn, h.in, newPanic(Any)) }
 
-func (u *Unit) addCase(in in, out out) *Unit {
-	u.rs = append(u.rs, newCase(u.fn, in, out))
+func (u *Unit) addCase(fn interface{}, in in, out out) *Unit {
+	u.rs = append(u.rs, newCase(fn, in, out))
 	return u
 }
 
