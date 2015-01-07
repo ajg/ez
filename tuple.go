@@ -31,6 +31,12 @@ type out struct {
 // Any is a placeholder that can be used with Out and Panic, and it means any value is acceptable.
 var Any struct{}
 
+// Error is a placeholder that can be used with Out and Panic, and it means any error is acceptable.
+var Error struct{}
+
+// Zero is a placeholder that can be used with Out and Panic, and it means only the zero value is acceptable.
+var Zero struct{}
+
 func (t tuple) String() string {
 	s := "("
 	for i, x := range t.xs {
@@ -72,6 +78,8 @@ func (t tuple) equal(u tuple) bool {
 		if y := u.xs[i]; x != Any && y != Any && !reflect.DeepEqual(x, y) {
 			return false
 		}
+		// TODO: Error
+		// TODO: Zero
 	}
 	return true
 }
