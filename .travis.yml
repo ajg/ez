@@ -5,9 +5,6 @@
 language: go
 
 go:
-# - 1.0 # go.tools/cmd/cover fails to install
-# - 1.1 # go.tools/cmd/vet fails to install
-  - 1.2
   - tip
 
 before_install:
