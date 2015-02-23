@@ -28,14 +28,24 @@ type out struct {
 	p interface{}
 }
 
-// Any is a placeholder that can be used with Out and Panic, and it means any value is acceptable.
-var Any struct{}
+type (
+	ANY   struct{}
+	NIL   struct{}
+	ZERO  struct{}
+	ERROR struct{}
+)
 
-// Error is a placeholder that can be used with Out and Panic, and it means any error is acceptable.
-var Error struct{}
+// Any is a placeholder that can be used with Out and Panic, and it means any value is acceptable.
+var Any = ANY{}
+
+// Nil is a placeholder that can be used with Out and Panic, and it means only nil is acceptable.
+var Nil = NIL{}
 
 // Zero is a placeholder that can be used with Out and Panic, and it means only the zero value is acceptable.
-var Zero struct{}
+var Zero = ZERO{}
+
+// Error is a placeholder that can be used with Out and Panic, and it means any error is acceptable.
+var Error = ERROR{}
 
 func (t tuple) String() string {
 	s := "("
@@ -75,13 +85,42 @@ func (t tuple) equal(u tuple) bool {
 		return false
 	}
 	for i, x := range t.xs {
-		if y := u.xs[i]; x != Any && y != Any && !reflect.DeepEqual(x, y) {
+		if y := u.xs[i]; !areEqual(x, y) {
 			return false
 		}
-		// TODO: Error
-		// TODO: Zero
 	}
 	return true
+}
+
+// TODO: Use mirror for this.
+func isAny(x interface{}) bool { return x == Any }
+func isNil(x interface{}) bool { return x == nil || x == Nil }
+func isZero(x interface{}) bool {
+	if x == Zero {
+		return true
+	}
+	return false // TODO: Use reflection.
+}
+func isError(x interface{}) bool { _, ok := x.(error); return ok || x == Error }
+
+func areEqual(x, y interface{}) (b bool) {
+	/*	b = areEqual1(x, y)
+			log.Println("areEqual", fmt.Sprintf("%#+v", x), "==", fmt.Sprintf("%#+v", y), "=>", b)
+			return b
+		}
+
+		func areEqual1(x, y interface{}) bool {*/
+	switch {
+	case isAny(x) || isAny(y):
+		return true
+	case isNil(x) && isNil(y):
+		return true
+	case isZero(x) && isZero(y):
+		return true
+	case isError(x) && isError(y):
+		return true
+	}
+	return reflect.DeepEqual(x, y)
 }
 
 func (in in) values(f reflect.Value) (vs []reflect.Value) {
