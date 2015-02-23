@@ -5,8 +5,10 @@
 package ez
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"reflect"
@@ -68,8 +70,8 @@ func (c Case) runTest(i int, t *testing.T) {
 			if reflect.DeepEqual(c.out.p, p) {
 				return
 			}
-			t.Errorf("case #%d %s - %s%v\n%s\n%s\ndiff %s",
-				i,
+			// t.Errorf("step #%d %s - %s%v\n%s\n%s\ndiff %s", i,
+			t.Errorf("%s - %s%v\n%s\n%s\ndiff %s",
 				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 				n,
 				c.in.t,
@@ -79,8 +81,8 @@ func (c Case) runTest(i int, t *testing.T) {
 					fmt.Sprintf("%#+v", c.out.p)),
 			)
 		default:
-			t.Errorf("case #%d %s - %s%v\n%s\n%s",
-				i,
+			// t.Errorf("step #%d %s - %s%v\n%s\n%s", i,
+			t.Errorf("%s - %s%v\n%s\n%s",
 				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 				n,
 				c.in.t,
@@ -89,9 +91,18 @@ func (c Case) runTest(i int, t *testing.T) {
 			)
 		}
 	}()
-	if out := apply(f, c.in.values(f)); c.out.p != nil {
-		t.Errorf("case #%d %s - %s%v\n%s\n%s",
-			i,
+	if out, err := apply(f, c.in.values(f), c.out.p != nil); err != nil {
+		// t.Errorf("step #%d %s - %s%v\n%s\n%s", i,
+		t.Errorf("%s - %s%v\n%s\n%s",
+			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
+			n,
+			c.in.t,
+			colorf(red, black, "error [%s]", err.Error()),
+			"",
+		)
+	} else if c.out.p != nil {
+		// t.Errorf("step #%d %s - %s%v\n%s\n%s", i,
+		t.Errorf("%s - %s%v\n%s\n%s",
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 			n,
 			c.in.t,
@@ -99,8 +110,8 @@ func (c Case) runTest(i int, t *testing.T) {
 			colorf(red, black, "have %#+v", out),
 		)
 	} else if !c.out.t.equal(out) {
-		t.Errorf("case #%d %s - %s%v\n%s\n%s\ndiff %s",
-			i,
+		// t.Errorf("step #%d %s - %s%v\n%s\n%s\ndiff %s", i,
+		t.Errorf("%s - %s%v\n%s\n%s\ndiff %s",
 			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
 			n,
 			c.in.t,
@@ -124,12 +135,26 @@ func (c Case) runBenchmark(i int, b *testing.B) {
 	f.Call(args)
 }
 
-func apply(f reflect.Value, args []reflect.Value) tuple {
+func apply(f reflect.Value, args []reflect.Value, panicExpected bool) (_ tuple, err error) {
+	if !panicExpected {
+		defer func() {
+			if e := recover(); e != nil {
+				s := fmt.Sprint(e)
+				err = errors.New(s)
+				if !strings.HasSuffix(s, "reflect:") {
+					log.Println("PANIC:")
+					debug.PrintStack()
+					log.Println("---")
+				}
+			}
+		}()
+	}
+
 	var ys []interface{}
 	for _, v := range f.Call(args) {
 		ys = append(ys, v.Interface())
 	}
-	return tuple{ys}
+	return tuple{ys}, err
 }
 
 // Colorize determines whether to attempt to use terminal colors.
