@@ -10,37 +10,72 @@ import (
 	"testing"
 )
 
-func TestIn(t *testing.T) {
+func TestIn_Abstract(t *testing.T) {
+	PathStyle = Abstract
 	args := []interface{}{true, 42, "foo"}
-	cin := in{tuple{args}, "unit_test.go", 16}
+	cin := in{tuple{args}, "github.com/ajg/ez/unit_test.go", 17}
 	if in := In(args...); !reflect.DeepEqual(cin, *in) {
 		t.Errorf("In(%v)\nwant (%v)\nhave (%v)", args, cin, *in)
 	}
 }
 
-func TestOut(t *testing.T) {
+func TestOut_Abstract(t *testing.T) {
+	PathStyle = Abstract
 	args := []interface{}{true, 42, "foo"}
-	cout := out{tuple{args}, "unit_test.go", 24, nil}
+	cout := out{tuple{args}, "github.com/ajg/ez/unit_test.go", 26, nil}
 	if out := Out(args...); !reflect.DeepEqual(cout, out) {
 		t.Errorf("Out(%v)\nwant (%v)\nhave (%v)", args, cout, out)
 	}
 }
 
-func TestPanic(t *testing.T) {
-	cout := out{tuple{}, "unit_test.go", 31, Any}
+func TestPanic_Abstract(t *testing.T) {
+	PathStyle = Abstract
+	cout := out{tuple{}, "github.com/ajg/ez/unit_test.go", 34, Any}
 	if out := Panic(); !reflect.DeepEqual(cout, out) {
 		t.Errorf("Panic()\nwant (%v)\nhave (%v)", cout, out)
 	}
 }
 
-func TestPanicWith(t *testing.T) {
+func TestPanicWith_Abstract(t *testing.T) {
+	PathStyle = Abstract
 	p := errors.New("bar")
-	cout := out{tuple{}, "unit_test.go", 39, p}
+	cout := out{tuple{}, "github.com/ajg/ez/unit_test.go", 43, p}
 	if out := PanicWith(p); !reflect.DeepEqual(cout, out) {
 		t.Errorf("PanicWith(%v)\nwant (%v)\nhave (%v)", p, cout, out)
 	}
 }
 
-func init() {
-	PathStyle = Truncate // TODO: Test at least Abstract as well.
+func TestIn_Truncate(t *testing.T) {
+	PathStyle = Truncate
+	args := []interface{}{true, 42, "foo"}
+	cin := in{tuple{args}, "unit_test.go", 52}
+	if in := In(args...); !reflect.DeepEqual(cin, *in) {
+		t.Errorf("In(%v)\nwant (%v)\nhave (%v)", args, cin, *in)
+	}
+}
+
+func TestOut_Truncate(t *testing.T) {
+	PathStyle = Truncate
+	args := []interface{}{true, 42, "foo"}
+	cout := out{tuple{args}, "unit_test.go", 61, nil}
+	if out := Out(args...); !reflect.DeepEqual(cout, out) {
+		t.Errorf("Out(%v)\nwant (%v)\nhave (%v)", args, cout, out)
+	}
+}
+
+func TestPanic_Truncate(t *testing.T) {
+	PathStyle = Truncate
+	cout := out{tuple{}, "unit_test.go", 69, Any}
+	if out := Panic(); !reflect.DeepEqual(cout, out) {
+		t.Errorf("Panic()\nwant (%v)\nhave (%v)", cout, out)
+	}
+}
+
+func TestPanicWith_Truncate(t *testing.T) {
+	PathStyle = Truncate
+	p := errors.New("bar")
+	cout := out{tuple{}, "unit_test.go", 78, p}
+	if out := PanicWith(p); !reflect.DeepEqual(cout, out) {
+		t.Errorf("PanicWith(%v)\nwant (%v)\nhave (%v)", p, cout, out)
+	}
 }
