@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
-	"strings"
 )
 
 type tuple struct {
@@ -165,15 +164,17 @@ func validValueOrZero(v reflect.Value, t reflect.Type) (reflect.Value, bool) {
 func source() (string, int) {
 	_, f, l, ok := runtime.Caller(3) // source + newIn/newOut/newPanic + In/Out/Panic
 	if ok {
-		// Truncate file name at last file name separator.
-		if i := strings.LastIndex(f, "/"); i >= 0 {
-			f = f[i+1:]
-		} else if i = strings.LastIndex(f, "\\"); i >= 0 {
-			f = f[i+1:]
-		}
+		/*
+			// Truncate file name at last file name separator.
+			if i := strings.LastIndex(f, "/"); i >= 0 {
+				return f[i+1:], l
+			} else if i = strings.LastIndex(f, "\\"); i >= 0 {
+				return f[i+1:], l
+			}
+		*/
+		return f, l
+
 	} else {
-		f = "???"
-		l = 1
+		return "???", 0
 	}
-	return f, l
 }
