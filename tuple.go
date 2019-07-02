@@ -6,8 +6,10 @@ package ez
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 )
 
 type tuple struct {
@@ -163,18 +165,27 @@ func validValueOrZero(v reflect.Value, t reflect.Type) (reflect.Value, bool) {
 
 func source() (string, int) {
 	_, f, l, ok := runtime.Caller(3) // source + newIn/newOut/newPanic + In/Out/Panic
-	if ok {
-		/*
-			// Truncate file name at last file name separator.
-			if i := strings.LastIndex(f, "/"); i >= 0 {
-				return f[i+1:], l
-			} else if i = strings.LastIndex(f, "\\"); i >= 0 {
-				return f[i+1:], l
-			}
-		*/
-		return f, l
-
-	} else {
+	if !ok {
 		return "???", 0
 	}
+	switch PathStyle {
+	case Absolute:
+		if p, err := filepath.Abs(f); err == nil {
+			return p, l
+		}
+	case Abstract:
+		return AbstractPath(f), l
+	case Relative:
+		if p, err := filepath.Rel(cwd, f); err == nil {
+			return p, l
+		}
+	case Truncate:
+		// Truncate file name at last file name separator.
+		if i := strings.LastIndex(f, "/"); i >= 0 {
+			return f[i+1:], l
+		} else if i = strings.LastIndex(f, "\\"); i >= 0 {
+			return f[i+1:], l
+		}
+	}
+	return f, l
 }

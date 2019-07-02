@@ -14,7 +14,7 @@ func TestIn(t *testing.T) {
 	args := []interface{}{true, 42, "foo"}
 	cin := in{tuple{args}, "unit_test.go", 16}
 	if in := In(args...); !reflect.DeepEqual(cin, *in) {
-		t.Errorf("In(%v)\nwant (%v)\nhave (%v)", args, cin, in)
+		t.Errorf("In(%v)\nwant (%v)\nhave (%v)", args, cin, *in)
 	}
 }
 
@@ -39,4 +39,8 @@ func TestPanicWith(t *testing.T) {
 	if out := PanicWith(p); !reflect.DeepEqual(cout, out) {
 		t.Errorf("PanicWith(%v)\nwant (%v)\nhave (%v)", p, cout, out)
 	}
+}
+
+func init() {
+	PathStyle = Truncate // TODO: Test at least Abstract as well.
 }
