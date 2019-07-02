@@ -11,11 +11,14 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"reflect"
 	"runtime"
 	"runtime/debug"
 	"strings"
 	"testing"
+
+	"github.com/kr/pretty"
 )
 
 // A Case represents a function and its required input and output values.
@@ -60,7 +63,11 @@ func (c Case) runTest(i int, t *testing.T) {
 	if !f.IsValid() || f.Kind() != reflect.Func {
 		panic("invalid function")
 	}
-	n := runtime.FuncForPC(f.Pointer()).Name()
+	fn := runtime.FuncForPC(f.Pointer())
+	d, n := splitName(fn.Name())
+	n = d + "/" + colorf(black, white, "%s", n)
+	s := colorf(white, black, " %s:%d ", c.in.f, c.in.l)
+
 	defer func() {
 		p := recover()
 		switch {
@@ -70,20 +77,20 @@ func (c Case) runTest(i int, t *testing.T) {
 			if reflect.DeepEqual(c.out.p, p) {
 				return
 			}
-			// t.Errorf("step #%d %s - %s%v\n%s\n%s\ndiff %s", i,
-			t.Errorf("%s - %s%v\n%s\n%s\ndiff %s",
-				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
+			// t.Errorf("step #%d %s\n - %s%v\n%s\n%s\ndiff %s", i,
+			t.Errorf("%s\n - %s%v\n%s\n%s\ndiff %s",
+				s,
 				n,
 				c.in.t,
 				colorf(green, black, "want panic (%#+v)", c.out.p),
 				colorf(red, black, "have panic (%#+v)\n%s", p, string(debug.Stack())),
-				Diff(fmt.Sprintf("%#+v", p),
-					fmt.Sprintf("%#+v", c.out.p)),
+				Diff(fmt.Sprintf("%# v", pretty.Formatter(p)),
+					fmt.Sprintf("%# v", pretty.Formatter(c.out.p))),
 			)
 		default:
-			// t.Errorf("step #%d %s - %s%v\n%s\n%s", i,
-			t.Errorf("%s - %s%v\n%s\n%s",
-				colorf(black, white, " %s:%d ", c.in.f, c.in.l),
+			// t.Errorf("step #%d %s\n - %s%v\n%s\n%s", i,
+			t.Errorf("%s\n - %s%v\n%s\n%s",
+				s,
 				n,
 				c.in.t,
 				colorf(green, black, "want %#+v", c.out.t),
@@ -92,33 +99,33 @@ func (c Case) runTest(i int, t *testing.T) {
 		}
 	}()
 	if out, err := apply(f, c.in.values(f), c.out.p != nil); err != nil {
-		// t.Errorf("step #%d %s - %s%v\n%s\n%s", i,
-		t.Errorf("%s - %s%v\n%s\n%s",
-			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
+		// t.Errorf("step #%d %s\n - %s%v\n%s\n%s", i,
+		t.Errorf("%s\n - %s%v\n%s\n%s",
+			s,
 			n,
 			c.in.t,
 			colorf(red, black, "error [%s]", err.Error()),
 			"",
 		)
 	} else if c.out.p != nil {
-		// t.Errorf("step #%d %s - %s%v\n%s\n%s", i,
-		t.Errorf("%s - %s%v\n%s\n%s",
-			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
+		// t.Errorf("step #%d %s\n - %s%v\n%s\n%s", i,
+		t.Errorf("%s\n - %s%v\n%s\n%s",
+			s,
 			n,
 			c.in.t,
 			colorf(green, black, "want panic [%s]", c.out.p),
 			colorf(red, black, "have %#+v", out),
 		)
 	} else if !c.out.t.equal(out) {
-		// t.Errorf("step #%d %s - %s%v\n%s\n%s\ndiff %s", i,
-		t.Errorf("%s - %s%v\n%s\n%s\ndiff %s",
-			colorf(black, white, " %s:%d ", c.in.f, c.in.l),
+		// t.Errorf("step #%d %s\n - %s%v\n%s\n%s\ndiff %s", i,
+		t.Errorf("%s\n - %s%v\n%s\n%s\ndiff %s",
+			s,
 			n,
 			c.in.t,
-			colorf(green, black, "want %#+v", c.out.t),
-			colorf(red, black, "have %#+v", out),
-			Diff(fmt.Sprintf("%#+v", out),
-				fmt.Sprintf("%#+v", c.out.t)),
+			colorf(green, black, "want %#+v", pretty.Formatter(c.out.t)),
+			colorf(red, black, "have %#+v", pretty.Formatter(out)),
+			Diff(fmt.Sprintf("%# v", pretty.Formatter(out)),
+				fmt.Sprintf("%# v", pretty.Formatter(c.out.t))),
 		)
 	}
 }
@@ -155,6 +162,16 @@ func apply(f reflect.Value, args []reflect.Value, panicExpected bool) (_ tuple, 
 		ys = append(ys, v.Interface())
 	}
 	return tuple{ys}, err
+}
+
+func splitName(n string) (string, string) {
+	// e.g. "example.org/user/package/foo.(Bar).Qux-fm" ~> "foo.Bar.Qux"
+	d := path.Dir(n)
+	n = path.Base(n)
+	n = strings.TrimSuffix(n, "-fm")
+	n = strings.Replace(n, "(", "", -1)
+	n = strings.Replace(n, ")", "", -1)
+	return d, n
 }
 
 // Colorize determines whether to attempt to use terminal colors.
